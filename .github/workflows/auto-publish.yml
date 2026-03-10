@@ -1,0 +1,51 @@
+name: Auto Publish XHS Skills
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    # 每天北京时间 18:00 自动发布
+    - cron: '0 10 * * *'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Generate new content
+      run: |
+        # 这里可以添加自动生成小红书内容的逻辑
+        echo "生成新的小红书内容..."
+        
+    - name: Auto commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Auto: 更新小红书内容 $(date)" || exit 0
+        git push
+        
+    - name: Create Release
+      if: github.event_name == 'push'
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        release_name: Release v1.0.${{ github.run_number }}
+        body: |
+          自动发布的小红书技能更新
+          
+          - 新增内容模板
+          - 优化视觉效果
+          - 提升点赞策略
+        draft: false
+        prerelease: false
